@@ -1,214 +1,296 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Peru JUG</title>
-  <!-- Bootstrap CSS -->
-  <link
-    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-    rel="stylesheet"
-    integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
-    crossorigin="anonymous"
-  />
-  <style>
-    /* Ensure media fits the slide area */
-    .carousel,
-    .carousel-item {
-      aspect-ratio: 16 / 9;
-      background: #000;
-    }
-    .carousel-item img {
-      object-fit: cover;
-      width: 100%;
-      height: 100%;
-      display: block;
-    }
-    .carousel-item video {
-      width: 100%;
-      height: 100%;
-      display: block;
-      background: #000;
-      object-fit: contain;
-      position: relative;
-      z-index: 1;
-    }
-    /* If your video needs rotation, uncomment and adjust:
-    .carousel-item video.rotate90 {
-      transform: rotate(90deg);
-      transform-origin: center center;
-    } */
-  </style>
-</head>
-<body class="bg-light">
-
-<div class="container py-4">
-  <h1 class="h3 mb-3">Peru JUG</h1>
-  <div id="mediaCarousel" class="carousel slide" data-bs-ride="carousel">
-    <!-- Indicators -->
-    <div class="carousel-indicators">
-      <button type="button" data-bs-target="#mediaCarousel" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
-      <button type="button" data-bs-target="#mediaCarousel" data-bs-slide-to="1" aria-label="Slide 2"></button>
-      <button type="button" data-bs-target="#mediaCarousel" data-bs-slide-to="2" aria-label="Slide 3"></button>
-      <button type="button" data-bs-target="#mediaCarousel" data-bs-slide-to="3" aria-label="Slide 4"></button>
-    </div>
-
-    <!-- Slides -->
-    <div class="carousel-inner">
-      <!-- Photo 1 -->
-      <!--
-      <div class="carousel-item active">
-        <img src="assets/photo1.jpg" class="d-block w-100" alt="Photo 1">
-        <div class="carousel-caption d-none d-md-block">
-          <h5>Photo 1</h5>
-        </div>
-      </div>
-      -->
-
-      <!-- Photo 2 -->
-      <!--
-      <div class="carousel-item">
-        <img src="assets/photo2.jpg" class="d-block w-100" alt="Photo 2">
-        <div class="carousel-caption d-none d-md-block">
-          <h5>Photo 2</h5>
-        </div>
-      </div>
-      -->
-
-      <!-- Video -->
-      <div class="carousel-item active">
-        <video 
-          id="mainVideo"
-          class="d-block w-100" 
-          controls 
-          playsinline 
-          preload="metadata" 
-          muted
-          style="cursor: pointer;">
-          <source src="/jconf-xtech/assets/video.mp4" type="video/mp4" />
-          <source src="assets/video.mp4" type="video/mp4" />
-          Your browser does not support HTML5 video.
-        </video>
-        <div class="carousel-caption d-none d-md-block">
-          <h5>Video</h5>
-        </div>
-      </div>
-
-      <!-- Photo 3 -->
-      <!--
-      <div class="carousel-item">
-        <img src="assets/photo3.jpg" class="d-block w-100" alt="Photo 3">
-        <div class="carousel-caption d-none d-md-block">
-          <h5>Photo 3</h5>
-        </div>
-      </div>
-      -->
-    </div>
-
-    <!-- Controls -->
-    <button class="carousel-control-prev" type="button" data-bs-target="#mediaCarousel" data-bs-slide="prev" aria-label="Previous">
-      <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-    </button>
-    <button class="carousel-control-next" type="button" data-bs-target="#mediaCarousel" data-bs-slide="next" aria-label="Next">
-      <span class="carousel-control-next-icon" aria-hidden="true"></span>
-    </button>
-  </div>
-</div>
-
-<!-- Bootstrap JS (bundle includes Popper) -->
-<script
-  src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
-  integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
-  crossorigin="anonymous"
-></script>
-
-<script>
-  // Optional: pause video when slide is not active
-  const carousel = document.getElementById('mediaCarousel');
-  carousel.addEventListener('slide.bs.carousel', (e) => {
-    const videos = e.target.querySelectorAll('video');
-    videos.forEach(v => v.pause());
-  });
-  
-  // Debug video loading issues and force load on user interaction
-  document.addEventListener('DOMContentLoaded', () => {
-    const video = document.getElementById('mainVideo');
-    if (!video) return;
-    
-    // Load video metadata on page load (lightweight)
-    video.load();
-    
-    // Force load video on any user interaction (required for large files)
-    const loadVideo = () => {
-      if (video.readyState === 0) {
-        console.log('Loading video on user interaction...');
-        video.load();
-      }
-    };
-    
-    // Try to load on click/touch
-    video.addEventListener('click', loadVideo, { once: true });
-    video.addEventListener('touchstart', loadVideo, { once: true });
-    document.addEventListener('click', loadVideo, { once: true });
-    
-    video.addEventListener('error', (e) => {
-      console.error('Video error:', e);
-      console.error('Video error code:', video.error?.code);
-      console.error('Video error message:', video.error?.message);
-      console.error('Video network state:', video.networkState);
-      console.error('Video ready state:', video.readyState);
-      
-      // Try alternative paths
-      const sources = video.querySelectorAll('source');
-      sources.forEach((source, index) => {
-        if (index === 0 && source.src.includes('/jconf-xtech/')) {
-          console.log('Trying alternative path...');
-          source.src = 'assets/video.mp4';
-          video.load();
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Media Gallery</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
         }
-      });
-    });
-    
-    video.addEventListener('loadstart', () => {
-      console.log('Video loading started');
-    });
-    
-    video.addEventListener('progress', () => {
-      if (video.buffered.length > 0) {
-        const percent = Math.round((video.buffered.end(0) / video.duration) * 100);
-        console.log('Video loading progress:', percent + '%');
-      }
-    });
-    
-    video.addEventListener('canplay', () => {
-      console.log('Video can play');
-    });
-    
-    video.addEventListener('canplaythrough', () => {
-      console.log('Video can play through');
-    });
-    
-    video.addEventListener('loadedmetadata', () => {
-      console.log('Video metadata loaded, duration:', video.duration, 'seconds');
-    });
-    
-    video.addEventListener('loadeddata', () => {
-      console.log('Video data loaded');
-    });
-    
-    // Log current source
-    const source = video.querySelector('source');
-    if (source) {
-      console.log('Video source:', source.src);
-    }
-    
-    // Show video element info
-    console.log('Video element:', {
-      width: video.offsetWidth,
-      height: video.offsetHeight,
-      visible: video.offsetWidth > 0 && video.offsetHeight > 0
-    });
-  });
-</script>
+        
+        .gallery-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 900px;
+            width: 100%;
+        }
+        
+        .media-wrapper {
+            position: relative;
+            width: 100%;
+            height: 500px;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+        
+        .media-item {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            transition: opacity 1s ease-in-out;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #000;
+        }
+        
+        .media-item.active {
+            opacity: 1;
+            z-index: 1;
+        }
+        
+        .media-item img,
+        .media-item video {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+        
+        .controls {
+            margin-top: 30px;
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .progress-bar-custom {
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 20px;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+            transition: width 0.3s ease;
+        }
+        
+        .media-counter {
+            text-align: center;
+            margin-top: 15px;
+            color: #666;
+            font-weight: 500;
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #333;
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body>
+    <div class="gallery-container">
+        <h1>My Media Gallery</h1>
+        
+        <div class="media-wrapper" id="mediaWrapper">
+            <!-- Media items will be loaded here -->
+        </div>
+        
+        <div class="progress-bar-custom">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+        
+        <div class="media-counter" id="mediaCounter">1 / 5</div>
+        
+        <div class="controls">
+            <button class="btn btn-outline-primary" id="prevBtn">
+                <svg width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+                    <path d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"/>
+                </svg>
+                Previous
+            </button>
+            
+            <button class="btn btn-primary" id="playPauseBtn">
+                <span id="playPauseIcon">⏸</span> Pause
+            </button>
+            
+            <button class="btn btn-outline-primary" id="nextBtn">
+                Next
+                <svg width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+                    <path d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z"/>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Configuration: Add your media files here
+        const mediaFiles = [
+            { type: 'video', src: 'assets/video1.mp4' },
+            { type: 'image', src: 'assets/photo1.jpg' },
+            { type: 'image', src: 'assets/photo2.jpg' },
+            { type: 'image', src: 'assets/photo3.jpg' },
+            { type: 'video', src: 'assets/video2.mp4' }
+        ];
+
+        let currentIndex = 0;
+        let isPlaying = true;
+        let rotationInterval;
+        const rotationDelay = 5000; // 5 seconds
+
+        const mediaWrapper = document.getElementById('mediaWrapper');
+        const playPauseBtn = document.getElementById('playPauseBtn');
+        const playPauseIcon = document.getElementById('playPauseIcon');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const progressFill = document.getElementById('progressFill');
+        const mediaCounter = document.getElementById('mediaCounter');
+
+        // Create media elements
+        function initializeGallery() {
+            mediaFiles.forEach((media, index) => {
+                const mediaDiv = document.createElement('div');
+                mediaDiv.className = 'media-item';
+                if (index === 0) mediaDiv.classList.add('active');
+
+                if (media.type === 'video') {
+                    const video = document.createElement('video');
+                    video.src = media.src;
+                    video.muted = true;
+                    video.loop = true;
+                    video.playsInline = true;
+                    mediaDiv.appendChild(video);
+                } else {
+                    const img = document.createElement('img');
+                    img.src = media.src;
+                    img.alt = `Photo ${index + 1}`;
+                    mediaDiv.appendChild(img);
+                }
+
+                mediaWrapper.appendChild(mediaDiv);
+            });
+
+            updateCounter();
+            startRotation();
+        }
+
+        // Show specific media item
+        function showMedia(index) {
+            const items = mediaWrapper.querySelectorAll('.media-item');
+            
+            items.forEach((item, i) => {
+                const video = item.querySelector('video');
+                
+                if (i === index) {
+                    item.classList.add('active');
+                    if (video && isPlaying) {
+                        video.play().catch(e => console.log('Video play failed:', e));
+                    }
+                } else {
+                    item.classList.remove('active');
+                    if (video) {
+                        video.pause();
+                        video.currentTime = 0;
+                    }
+                }
+            });
+
+            currentIndex = index;
+            updateCounter();
+            updateProgress();
+        }
+
+        // Update counter
+        function updateCounter() {
+            mediaCounter.textContent = `${currentIndex + 1} / ${mediaFiles.length}`;
+        }
+
+        // Update progress bar
+        function updateProgress() {
+            const progress = ((currentIndex + 1) / mediaFiles.length) * 100;
+            progressFill.style.width = `${progress}%`;
+        }
+
+        // Next media
+        function nextMedia() {
+            const newIndex = (currentIndex + 1) % mediaFiles.length;
+            showMedia(newIndex);
+        }
+
+        // Previous media
+        function prevMedia() {
+            const newIndex = (currentIndex - 1 + mediaFiles.length) % mediaFiles.length;
+            showMedia(newIndex);
+        }
+
+        // Start automatic rotation
+        function startRotation() {
+            if (rotationInterval) clearInterval(rotationInterval);
+            rotationInterval = setInterval(nextMedia, rotationDelay);
+        }
+
+        // Stop rotation
+        function stopRotation() {
+            if (rotationInterval) {
+                clearInterval(rotationInterval);
+                rotationInterval = null;
+            }
+        }
+
+        // Toggle play/pause
+        function togglePlayPause() {
+            isPlaying = !isPlaying;
+            
+            if (isPlaying) {
+                playPauseIcon.textContent = '⏸';
+                playPauseBtn.innerHTML = '<span id="playPauseIcon">⏸</span> Pause';
+                startRotation();
+                
+                // Resume current video if any
+                const currentItem = mediaWrapper.querySelector('.media-item.active');
+                const video = currentItem?.querySelector('video');
+                if (video) video.play().catch(e => console.log('Video play failed:', e));
+            } else {
+                playPauseIcon.textContent = '▶';
+                playPauseBtn.innerHTML = '<span id="playPauseIcon">▶</span> Play';
+                stopRotation();
+                
+                // Pause current video if any
+                const currentItem = mediaWrapper.querySelector('.media-item.active');
+                const video = currentItem?.querySelector('video');
+                if (video) video.pause();
+            }
+        }
+
+        // Event listeners
+        playPauseBtn.addEventListener('click', togglePlayPause);
+        nextBtn.addEventListener('click', () => {
+            nextMedia();
+            if (isPlaying) {
+                stopRotation();
+                startRotation();
+            }
+        });
+        prevBtn.addEventListener('click', () => {
+            prevMedia();
+            if (isPlaying) {
+                stopRotation();
+                startRotation();
+            }
+        });
+
+        // Initialize
+        initializeGallery();
+    </script>
 </body>
 </html>
