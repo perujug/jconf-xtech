@@ -7,6 +7,7 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <title>Peru JUG - Video</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎥</text></svg>">
     <style>
         * {
             margin: 0;
@@ -331,59 +332,79 @@
         // Request fullscreen on container (so overlay is visible)
         const videoContainer = document.getElementById('videoContainer');
         
+        // Function to request fullscreen (must be called from user interaction)
+        const requestFullscreen = () => {
+            const element = videoContainer;
+            
+            // Ensure overlay is visible before entering fullscreen
+            socialOverlay.style.display = 'flex';
+            socialOverlay.style.visibility = 'visible';
+            socialOverlay.style.opacity = '1';
+            
+            if (element.requestFullscreen) {
+                element.requestFullscreen().then(() => {
+                    // Force overlay visibility after fullscreen
+                    setTimeout(() => {
+                        socialOverlay.style.display = 'flex';
+                        socialOverlay.style.visibility = 'visible';
+                        socialOverlay.style.opacity = '1';
+                        socialOverlay.style.zIndex = '2147483647';
+                    }, 100);
+                }).catch(err => {
+                    console.log('Fullscreen request failed:', err);
+                });
+            } else if (element.webkitRequestFullscreen) {
+                element.webkitRequestFullscreen();
+                setTimeout(() => {
+                    socialOverlay.style.display = 'flex';
+                    socialOverlay.style.visibility = 'visible';
+                    socialOverlay.style.opacity = '1';
+                    socialOverlay.style.zIndex = '2147483647';
+                }, 100);
+            } else if (element.mozRequestFullScreen) {
+                element.mozRequestFullScreen();
+                setTimeout(() => {
+                    socialOverlay.style.display = 'flex';
+                    socialOverlay.style.visibility = 'visible';
+                    socialOverlay.style.opacity = '1';
+                    socialOverlay.style.zIndex = '2147483647';
+                }, 100);
+            } else if (element.msRequestFullscreen) {
+                element.msRequestFullscreen();
+                setTimeout(() => {
+                    socialOverlay.style.display = 'flex';
+                    socialOverlay.style.visibility = 'visible';
+                    socialOverlay.style.opacity = '1';
+                    socialOverlay.style.zIndex = '2147483647';
+                }, 100);
+            }
+        };
+        
+        // Request fullscreen on user click (respects browser security)
+        let fullscreenRequested = false;
+        const requestFullscreenOnInteraction = () => {
+            if (!fullscreenRequested) {
+                const isFullscreen = document.fullscreenElement || 
+                                    document.webkitFullscreenElement || 
+                                    document.mozFullScreenElement || 
+                                    document.msFullscreenElement;
+                
+                if (!isFullscreen) {
+                    requestFullscreen();
+                    fullscreenRequested = true;
+                    // Remove listeners after first successful request
+                    document.removeEventListener('click', requestFullscreenOnInteraction);
+                    document.removeEventListener('touchstart', requestFullscreenOnInteraction);
+                }
+            }
+        };
+        
+        // Listen for user interaction to request fullscreen
+        document.addEventListener('click', requestFullscreenOnInteraction, { once: true });
+        document.addEventListener('touchstart', requestFullscreenOnInteraction, { once: true });
+        
         video.addEventListener('loadedmetadata', () => {
             console.log('Video metadata loaded, duration:', video.duration);
-            
-            // Try to enter fullscreen on container
-            const requestFullscreen = () => {
-                const element = videoContainer;
-                
-                // Ensure overlay is visible before entering fullscreen
-                socialOverlay.style.display = 'flex';
-                socialOverlay.style.visibility = 'visible';
-                socialOverlay.style.opacity = '1';
-                
-                if (element.requestFullscreen) {
-                    element.requestFullscreen().then(() => {
-                        // Force overlay visibility after fullscreen
-                        setTimeout(() => {
-                            socialOverlay.style.display = 'flex';
-                            socialOverlay.style.visibility = 'visible';
-                            socialOverlay.style.opacity = '1';
-                            socialOverlay.style.zIndex = '2147483647';
-                        }, 100);
-                    }).catch(err => {
-                        console.log('Fullscreen request failed:', err);
-                    });
-                } else if (element.webkitRequestFullscreen) {
-                    element.webkitRequestFullscreen();
-                    setTimeout(() => {
-                        socialOverlay.style.display = 'flex';
-                        socialOverlay.style.visibility = 'visible';
-                        socialOverlay.style.opacity = '1';
-                        socialOverlay.style.zIndex = '2147483647';
-                    }, 100);
-                } else if (element.mozRequestFullScreen) {
-                    element.mozRequestFullScreen();
-                    setTimeout(() => {
-                        socialOverlay.style.display = 'flex';
-                        socialOverlay.style.visibility = 'visible';
-                        socialOverlay.style.opacity = '1';
-                        socialOverlay.style.zIndex = '2147483647';
-                    }, 100);
-                } else if (element.msRequestFullscreen) {
-                    element.msRequestFullscreen();
-                    setTimeout(() => {
-                        socialOverlay.style.display = 'flex';
-                        socialOverlay.style.visibility = 'visible';
-                        socialOverlay.style.opacity = '1';
-                        socialOverlay.style.zIndex = '2147483647';
-                    }, 100);
-                }
-            };
-            
-            // Request fullscreen after a short delay
-            setTimeout(requestFullscreen, 500);
         });
         
         // Handle fullscreen change events
