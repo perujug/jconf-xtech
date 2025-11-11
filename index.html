@@ -69,8 +69,8 @@
 
       <!-- Video -->
       <div class="carousel-item active">
-        <video class="d-block w-100" controls playsinline preload="metadata">
-          <source src="./assets/video.mp4" type="video/mp4" />
+        <video class="d-block w-100" controls playsinline preload="auto" muted>
+          <source src="assets/video.mp4" type="video/mp4" />
           Your browser does not support HTML5 video.
         </video>
         <div class="carousel-caption d-none d-md-block">
@@ -86,8 +86,8 @@
           <h5>Photo 3</h5>
         </div>
       </div>
+      -->
     </div>
-    -->
 
     <!-- Controls -->
     <button class="carousel-control-prev" type="button" data-bs-target="#mediaCarousel" data-bs-slide="prev" aria-label="Previous">
@@ -112,6 +112,26 @@
   carousel.addEventListener('slide.bs.carousel', (e) => {
     const videos = e.target.querySelectorAll('video');
     videos.forEach(v => v.pause());
+  });
+  
+  // Debug video loading issues
+  document.addEventListener('DOMContentLoaded', () => {
+    const video = document.querySelector('video');
+    if (video) {
+      video.addEventListener('error', (e) => {
+        console.error('Video error:', e);
+        console.error('Video error details:', video.error);
+      });
+      video.addEventListener('loadstart', () => {
+        console.log('Video loading started');
+      });
+      video.addEventListener('canplay', () => {
+        console.log('Video can play');
+      });
+      video.addEventListener('loadedmetadata', () => {
+        console.log('Video metadata loaded');
+      });
+    }
   });
 </script>
 </body>
