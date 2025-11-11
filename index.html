@@ -36,7 +36,7 @@
     </style>
 </head>
 <body>
-    <video id="mainVideo" controls playsinline preload="auto">
+    <video id="mainVideo" controls playsinline preload="auto" loop>
         Your browser does not support HTML5 video.
     </video>
 
@@ -53,9 +53,10 @@
         source.type = 'video/mp4';
         video.appendChild(source);
         
-        // Unmute the video
+        // Unmute the video and enable looping
         video.muted = false;
         video.preload = 'auto';
+        video.loop = true;
         
         console.log('Video source set to:', videoSrc);
         console.log('Full video src:', video.src);
