@@ -33,8 +33,9 @@
     </style>
 </head>
 <body>
-    <video id="mainVideo" controls autoplay playsinline>
-        <source src="assets/video.mp4" type="video/mp4">
+    <video id="mainVideo" controls playsinline>
+        <source src="assets/video1.mp4" type="video/mp4">
+        <source src="/jconf-xtech/assets/video1.mp4" type="video/mp4">
         Your browser does not support HTML5 video.
     </video>
 
@@ -43,38 +44,9 @@
         
         // Unmute the video
         video.muted = false;
+        video.preload = 'auto';
         
-        // Request fullscreen when video can play
-        video.addEventListener('loadedmetadata', () => {
-            console.log('Video metadata loaded, duration:', video.duration);
-            
-            // Try to enter fullscreen
-            if (video.requestFullscreen) {
-                video.requestFullscreen().catch(err => {
-                    console.log('Fullscreen request failed:', err);
-                });
-            } else if (video.webkitRequestFullscreen) {
-                video.webkitRequestFullscreen();
-            } else if (video.mozRequestFullScreen) {
-                video.mozRequestFullScreen();
-            } else if (video.msRequestFullscreen) {
-                video.msRequestFullscreen();
-            }
-        });
-        
-        // Ensure video plays
-        video.addEventListener('canplay', () => {
-            console.log('Video can play');
-            video.play().catch(err => {
-                console.log('Auto-play failed, user interaction required:', err);
-            });
-        });
-        
-        video.addEventListener('canplaythrough', () => {
-            console.log('Video can play through');
-        });
-        
-        // Error handling
+        // Error handling - try alternative paths
         video.addEventListener('error', (e) => {
             console.error('Video error:', video.error);
             console.error('Video network state:', video.networkState);
@@ -83,27 +55,94 @@
             if (video.error) {
                 console.error('Error code:', video.error.code);
                 console.error('Error message:', video.error.message);
+                
+                // Try alternative path if first fails
+                if (video.error.code === 4) {
+                    const sources = video.querySelectorAll('source');
+                    if (sources.length > 1 && sources[0].src.includes('assets/video1.mp4')) {
+                        console.log('Trying alternative path...');
+                        video.load();
+                    }
+                }
             }
+        });
+        
+        // Request fullscreen when video can play
+        video.addEventListener('loadedmetadata', () => {
+            console.log('Video metadata loaded, duration:', video.duration);
+            
+            // Try to enter fullscreen
+            const requestFullscreen = () => {
+                if (video.requestFullscreen) {
+                    video.requestFullscreen().catch(err => {
+                        console.log('Fullscreen request failed:', err);
+                    });
+                } else if (video.webkitRequestFullscreen) {
+                    video.webkitRequestFullscreen();
+                } else if (video.mozRequestFullScreen) {
+                    video.mozRequestFullScreen();
+                } else if (video.msRequestFullscreen) {
+                    video.msRequestFullscreen();
+                }
+            };
+            
+            // Request fullscreen after a short delay
+            setTimeout(requestFullscreen, 500);
+        });
+        
+        // Ensure video plays
+        video.addEventListener('canplay', () => {
+            console.log('Video can play');
+            if (video.paused) {
+                video.play().catch(err => {
+                    console.log('Auto-play failed, user interaction required:', err);
+                });
+            }
+        });
+        
+        video.addEventListener('canplaythrough', () => {
+            console.log('Video can play through');
+        });
+        
+        video.addEventListener('loadstart', () => {
+            console.log('Video loading started');
+        });
+        
+        video.addEventListener('loadeddata', () => {
+            console.log('Video data loaded');
         });
         
         // Load the video
         video.load();
         
-        // Try to play immediately
-        video.play().catch(err => {
-            console.log('Initial play failed, will retry on user interaction:', err);
-            
-            // Retry on any user interaction
-            const playOnInteraction = () => {
-                video.play().then(() => {
-                    document.removeEventListener('click', playOnInteraction);
-                    document.removeEventListener('touchstart', playOnInteraction);
-                }).catch(e => console.error('Retry play failed:', e));
-            };
-            
-            document.addEventListener('click', playOnInteraction, { once: true });
-            document.addEventListener('touchstart', playOnInteraction, { once: true });
-        });
+        // Try to play on page load
+        const tryPlay = () => {
+            video.play().catch(err => {
+                console.log('Initial play failed, will retry on user interaction:', err);
+                
+                // Show a message or make video visible for user to click
+                video.style.cursor = 'pointer';
+                
+                // Retry on any user interaction
+                const playOnInteraction = () => {
+                    video.play().then(() => {
+                        console.log('Video playing after user interaction');
+                        document.removeEventListener('click', playOnInteraction);
+                        document.removeEventListener('touchstart', playOnInteraction);
+                    }).catch(e => console.error('Retry play failed:', e));
+                };
+                
+                document.addEventListener('click', playOnInteraction, { once: true });
+                document.addEventListener('touchstart', playOnInteraction, { once: true });
+            });
+        };
+        
+        // Wait for video to be ready
+        if (video.readyState >= 2) {
+            tryPlay();
+        } else {
+            video.addEventListener('loadedmetadata', tryPlay, { once: true });
+        }
     </script>
 </body>
 </html>
