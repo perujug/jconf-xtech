@@ -136,7 +136,7 @@
     <script>
         // Configuration: Add your media files here
         const mediaFiles = [
-            { type: 'video', src: 'assets/video1.mp4' },
+            { type: 'video', src: 'assets/video.mp4' },
             { type: 'image', src: 'assets/photo1.jpg' },
             { type: 'image', src: 'assets/photo2.jpg' },
             { type: 'image', src: 'assets/photo3.jpg' }
@@ -145,7 +145,7 @@
         let currentIndex = 0;
         let isPlaying = true;
         let rotationInterval;
-        const rotationDelay = 5000; // 5 seconds
+        const rotationDelay = 5000; // 5 seconds for images
 
         const mediaWrapper = document.getElementById('mediaWrapper');
         const playPauseBtn = document.getElementById('playPauseBtn');
@@ -166,8 +166,15 @@
                     const video = document.createElement('video');
                     video.src = media.src;
                     video.muted = true;
-                    video.loop = true;
+                    video.loop = false; // Don't loop - wait for video to end
                     video.playsInline = true;
+                    video.preload = 'metadata';
+                    // Listen for video end to advance to next slide
+                    video.addEventListener('ended', () => {
+                        if (isPlaying) {
+                            nextMedia();
+                        }
+                    });
                     mediaDiv.appendChild(video);
                 } else {
                     const img = document.createElement('img');
@@ -180,12 +187,25 @@
             });
 
             updateCounter();
-            startRotation();
+            updateProgress();
+            
+            // Start rotation only if first item is not a video
+            const firstItem = mediaWrapper.querySelector('.media-item.active');
+            const firstVideo = firstItem?.querySelector('video');
+            if (!firstVideo && isPlaying) {
+                startRotation();
+            } else if (firstVideo && isPlaying) {
+                // Start playing the video
+                firstVideo.play().catch(e => console.log('Video play failed:', e));
+            }
         }
 
         // Show specific media item
         function showMedia(index) {
             const items = mediaWrapper.querySelectorAll('.media-item');
+            
+            // Stop current rotation timer
+            stopRotation();
             
             items.forEach((item, i) => {
                 const video = item.querySelector('video');
@@ -193,7 +213,12 @@
                 if (i === index) {
                     item.classList.add('active');
                     if (video && isPlaying) {
+                        video.currentTime = 0; // Reset video to start
                         video.play().catch(e => console.log('Video play failed:', e));
+                        // Don't start interval for videos - they will advance on 'ended' event
+                    } else if (!video && isPlaying) {
+                        // For images, start the rotation timer
+                        startRotation();
                     }
                 } else {
                     item.classList.remove('active');
@@ -232,10 +257,24 @@
             showMedia(newIndex);
         }
 
-        // Start automatic rotation
+        // Start automatic rotation (only for images, videos advance on 'ended' event)
         function startRotation() {
             if (rotationInterval) clearInterval(rotationInterval);
-            rotationInterval = setInterval(nextMedia, rotationDelay);
+            
+            // Only start rotation if current media is not a video
+            const currentItem = mediaWrapper.querySelector('.media-item.active');
+            const video = currentItem?.querySelector('video');
+            
+            if (!video && isPlaying) {
+                rotationInterval = setInterval(() => {
+                    const currentItem = mediaWrapper.querySelector('.media-item.active');
+                    const video = currentItem?.querySelector('video');
+                    // Only advance if it's not a video (videos advance on 'ended' event)
+                    if (!video) {
+                        nextMedia();
+                    }
+                }, rotationDelay);
+            }
         }
 
         // Stop rotation
@@ -250,23 +289,26 @@
         function togglePlayPause() {
             isPlaying = !isPlaying;
             
+            const currentItem = mediaWrapper.querySelector('.media-item.active');
+            const video = currentItem?.querySelector('video');
+            
             if (isPlaying) {
                 playPauseIcon.textContent = '⏸';
                 playPauseBtn.innerHTML = '<span id="playPauseIcon">⏸</span> Pause';
-                startRotation();
                 
-                // Resume current video if any
-                const currentItem = mediaWrapper.querySelector('.media-item.active');
-                const video = currentItem?.querySelector('video');
-                if (video) video.play().catch(e => console.log('Video play failed:', e));
+                if (video) {
+                    // Resume video
+                    video.play().catch(e => console.log('Video play failed:', e));
+                } else {
+                    // Start rotation for images
+                    startRotation();
+                }
             } else {
                 playPauseIcon.textContent = '▶';
                 playPauseBtn.innerHTML = '<span id="playPauseIcon">▶</span> Play';
                 stopRotation();
                 
                 // Pause current video if any
-                const currentItem = mediaWrapper.querySelector('.media-item.active');
-                const video = currentItem?.querySelector('video');
                 if (video) video.pause();
             }
         }
@@ -274,18 +316,12 @@
         // Event listeners
         playPauseBtn.addEventListener('click', togglePlayPause);
         nextBtn.addEventListener('click', () => {
-            nextMedia();
-            if (isPlaying) {
-                stopRotation();
-                startRotation();
-            }
+            stopRotation(); // Stop current timer
+            nextMedia(); // This will start appropriate rotation in showMedia()
         });
         prevBtn.addEventListener('click', () => {
-            prevMedia();
-            if (isPlaying) {
-                stopRotation();
-                startRotation();
-            }
+            stopRotation(); // Stop current timer
+            prevMedia(); // This will start appropriate rotation in showMedia()
         });
 
         // Initialize
