@@ -37,8 +37,7 @@
 </head>
 <body>
     <video id="mainVideo" controls playsinline preload="auto">
-        <source src="assets/video1.mp4?v=1" type="video/mp4">
-        <source src="/jconf-xtech/assets/video1.mp4?v=1" type="video/mp4">
+        <source src="assets/video1.mp4" type="video/mp4">
         Your browser does not support HTML5 video.
     </video>
 
@@ -49,37 +48,45 @@
         video.muted = false;
         video.preload = 'auto';
         
-        // Error handling - try alternative paths
+        // Error handling with detailed logging
         video.addEventListener('error', (e) => {
-            console.error('Video error:', video.error);
-            console.error('Video network state:', video.networkState);
-            console.error('Video ready state:', video.readyState);
+            console.error('=== VIDEO ERROR ===');
+            console.error('Error object:', video.error);
+            console.error('Network state:', video.networkState);
+            console.error('Ready state:', video.readyState);
             console.error('Current source:', video.currentSrc);
+            console.error('Video src:', video.src);
             
             if (video.error) {
-                console.error('Error code:', video.error.code);
+                const errorMessages = {
+                    1: 'MEDIA_ERR_ABORTED - The user aborted the loading',
+                    2: 'MEDIA_ERR_NETWORK - A network error occurred',
+                    3: 'MEDIA_ERR_DECODE - An error occurred while decoding',
+                    4: 'MEDIA_ERR_SRC_NOT_SUPPORTED - The video source is not supported'
+                };
+                console.error('Error code:', video.error.code, '-', errorMessages[video.error.code] || 'Unknown error');
                 console.error('Error message:', video.error.message);
                 
-                // Try alternative paths
-                const sources = video.querySelectorAll('source');
-                const currentSrc = video.currentSrc || '';
-                
-                // If error and we have multiple sources, try the next one
-                if (video.error.code === 4 && sources.length > 1) {
-                    const currentIndex = Array.from(sources).findIndex(s => s.src === currentSrc);
-                    if (currentIndex >= 0 && currentIndex < sources.length - 1) {
-                        console.log('Trying next source...');
-                        // Remove failed source and try next
-                        sources[currentIndex].remove();
-                        video.load();
-                    } else if (currentSrc.includes('video.mp4')) {
-                        // If somehow trying old video.mp4, force reload with correct file
-                        console.log('Detected old video.mp4 reference, fixing...');
-                        sources.forEach(s => {
-                            if (s.src.includes('video.mp4')) {
-                                s.src = s.src.replace('video.mp4', 'video1.mp4');
-                            }
-                        });
+                // Try to fix common issues
+                if (video.error.code === 4) {
+                    // Source not supported - try absolute path
+                    const currentSrc = video.currentSrc || video.src || '';
+                    console.log('Attempting to fix source path...');
+                    
+                    if (currentSrc.includes('video.mp4') && !currentSrc.includes('video1.mp4')) {
+                        // Fix old video.mp4 reference
+                        const source = video.querySelector('source');
+                        if (source) {
+                            source.src = 'assets/video1.mp4';
+                            video.load();
+                        } else {
+                            video.src = 'assets/video1.mp4';
+                            video.load();
+                        }
+                    } else if (!currentSrc.startsWith('http') && !currentSrc.startsWith('/')) {
+                        // Try absolute path
+                        const basePath = window.location.pathname.replace(/\/[^/]*$/, '');
+                        video.src = basePath + '/assets/video1.mp4';
                         video.load();
                     }
                 }
@@ -131,12 +138,21 @@
             console.log('Video data loaded');
         });
         
+        // Log video source for debugging
+        console.log('Video element sources:');
+        video.querySelectorAll('source').forEach((source, index) => {
+            console.log(`  Source ${index + 1}:`, source.src, '- Type:', source.type);
+        });
+        
         // Load the video
         video.load();
         
         // Try to play on page load
         const tryPlay = () => {
-            video.play().catch(err => {
+            console.log('Attempting to play video...');
+            video.play().then(() => {
+                console.log('Video playing successfully');
+            }).catch(err => {
                 console.log('Initial play failed, will retry on user interaction:', err);
                 
                 // Show a message or make video visible for user to click
