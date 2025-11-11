@@ -33,12 +33,136 @@
             object-fit: contain;
             background: #000;
         }
+        
+        .social-overlay {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 20px 25px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+        
+        .social-overlay:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+        }
+        
+        .social-title {
+            color: #333;
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .social-links {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .social-link {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            color: #333;
+            transition: transform 0.3s ease;
+        }
+        
+        .social-link:hover {
+            transform: scale(1.15);
+        }
+        
+        .social-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            transition: box-shadow 0.3s ease;
+        }
+        
+        .social-link:hover .social-icon {
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+        }
+        
+        .social-link.facebook .social-icon {
+            background: #1877f2;
+            color: #fff;
+        }
+        
+        .social-link.twitter .social-icon {
+            background: #1da1f2;
+            color: #fff;
+        }
+        
+        .social-link.linkedin .social-icon {
+            background: #0077b5;
+            color: #fff;
+        }
+        
+        .social-link.youtube .social-icon {
+            background: #ff0000;
+            color: #fff;
+        }
+        
+        @media (max-width: 768px) {
+            .social-overlay {
+                bottom: 15px;
+                right: 15px;
+                padding: 15px;
+            }
+            
+            .social-title {
+                font-size: 1.2rem;
+                margin-bottom: 12px;
+            }
+            
+            .social-links {
+                gap: 10px;
+            }
+            
+            .social-icon {
+                width: 40px;
+                height: 40px;
+                font-size: 1.2rem;
+            }
+        }
     </style>
 </head>
 <body>
     <video id="mainVideo" controls playsinline preload="auto" loop>
         Your browser does not support HTML5 video.
     </video>
+    
+    <div class="social-overlay" id="socialOverlay">
+        <div class="social-title">PeruJUG</div>
+        <div class="social-links">
+            <a href="https://www.facebook.com/groups/perujug" target="_blank" rel="noopener noreferrer" class="social-link facebook" title="Facebook">
+                <div class="social-icon" style="font-weight: bold; font-size: 1.8rem;">f</div>
+            </a>
+            <a href="https://twitter.com/perujug" target="_blank" rel="noopener noreferrer" class="social-link twitter" title="Twitter">
+                <div class="social-icon" style="font-size: 1.3rem;">🐦</div>
+            </a>
+            <a href="https://www.linkedin.com/company/perujug/" target="_blank" rel="noopener noreferrer" class="social-link linkedin" title="LinkedIn">
+                <div class="social-icon" style="font-weight: bold; font-size: 1.3rem;">in</div>
+            </a>
+            <a href="https://www.youtube.com/c/PeruJUG" target="_blank" rel="noopener noreferrer" class="social-link youtube" title="YouTube">
+                <div class="social-icon" style="font-size: 1.3rem;">▶</div>
+            </a>
+        </div>
+    </div>
 
     <script>
         const video = document.getElementById('mainVideo');
