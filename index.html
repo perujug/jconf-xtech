@@ -66,8 +66,19 @@
         .video-container:-webkit-full-screen .social-overlay,
         .video-container:-moz-full-screen .social-overlay,
         .video-container:-ms-fullscreen .social-overlay {
-            position: fixed;
-            z-index: 2147483647;
+            position: fixed !important;
+            z-index: 2147483647 !important;
+            display: flex !important;
+        }
+        
+        /* Also handle when body/document is in fullscreen */
+        :fullscreen .social-overlay,
+        :-webkit-full-screen .social-overlay,
+        :-moz-full-screen .social-overlay,
+        :-ms-fullscreen .social-overlay {
+            position: fixed !important;
+            z-index: 2147483647 !important;
+            display: flex !important;
         }
         
         .social-overlay:hover {
@@ -314,16 +325,48 @@
             // Try to enter fullscreen on container
             const requestFullscreen = () => {
                 const element = videoContainer;
+                
+                // Ensure overlay is visible before entering fullscreen
+                socialOverlay.style.display = 'flex';
+                socialOverlay.style.visibility = 'visible';
+                socialOverlay.style.opacity = '1';
+                
                 if (element.requestFullscreen) {
-                    element.requestFullscreen().catch(err => {
+                    element.requestFullscreen().then(() => {
+                        // Force overlay visibility after fullscreen
+                        setTimeout(() => {
+                            socialOverlay.style.display = 'flex';
+                            socialOverlay.style.visibility = 'visible';
+                            socialOverlay.style.opacity = '1';
+                            socialOverlay.style.zIndex = '2147483647';
+                        }, 100);
+                    }).catch(err => {
                         console.log('Fullscreen request failed:', err);
                     });
                 } else if (element.webkitRequestFullscreen) {
                     element.webkitRequestFullscreen();
+                    setTimeout(() => {
+                        socialOverlay.style.display = 'flex';
+                        socialOverlay.style.visibility = 'visible';
+                        socialOverlay.style.opacity = '1';
+                        socialOverlay.style.zIndex = '2147483647';
+                    }, 100);
                 } else if (element.mozRequestFullScreen) {
                     element.mozRequestFullScreen();
+                    setTimeout(() => {
+                        socialOverlay.style.display = 'flex';
+                        socialOverlay.style.visibility = 'visible';
+                        socialOverlay.style.opacity = '1';
+                        socialOverlay.style.zIndex = '2147483647';
+                    }, 100);
                 } else if (element.msRequestFullscreen) {
                     element.msRequestFullscreen();
+                    setTimeout(() => {
+                        socialOverlay.style.display = 'flex';
+                        socialOverlay.style.visibility = 'visible';
+                        socialOverlay.style.opacity = '1';
+                        socialOverlay.style.zIndex = '2147483647';
+                    }, 100);
                 }
             };
             
@@ -345,9 +388,23 @@
                                 document.msFullscreenElement;
             
             if (isFullscreen) {
-                // Overlay should remain visible and draggable
+                // Force overlay to be visible and draggable in fullscreen
                 socialOverlay.style.position = 'fixed';
                 socialOverlay.style.zIndex = '2147483647';
+                socialOverlay.style.display = 'flex';
+                socialOverlay.style.visibility = 'visible';
+                socialOverlay.style.opacity = '1';
+                
+                // Ensure overlay is in the fullscreen element
+                const fullscreenElement = isFullscreen;
+                if (fullscreenElement && !fullscreenElement.contains(socialOverlay)) {
+                    // If overlay is not in fullscreen element, append it
+                    fullscreenElement.appendChild(socialOverlay);
+                }
+            } else {
+                // Restore normal positioning when exiting fullscreen
+                socialOverlay.style.visibility = 'visible';
+                socialOverlay.style.opacity = '1';
             }
         }
         
