@@ -401,12 +401,42 @@
                     // If overlay is not in fullscreen element, append it
                     fullscreenElement.appendChild(socialOverlay);
                 }
+                
+                // Periodically check and ensure overlay is visible
+                const visibilityCheck = setInterval(() => {
+                    const stillFullscreen = document.fullscreenElement || 
+                                          document.webkitFullscreenElement || 
+                                          document.mozFullScreenElement || 
+                                          document.msFullscreenElement;
+                    if (stillFullscreen) {
+                        socialOverlay.style.display = 'flex';
+                        socialOverlay.style.visibility = 'visible';
+                        socialOverlay.style.opacity = '1';
+                        socialOverlay.style.zIndex = '2147483647';
+                    } else {
+                        clearInterval(visibilityCheck);
+                    }
+                }, 500);
             } else {
                 // Restore normal positioning when exiting fullscreen
                 socialOverlay.style.visibility = 'visible';
                 socialOverlay.style.opacity = '1';
             }
         }
+        
+        // Also check overlay visibility periodically
+        setInterval(() => {
+            const isFullscreen = document.fullscreenElement || 
+                                document.webkitFullscreenElement || 
+                                document.mozFullScreenElement || 
+                                document.msFullscreenElement;
+            if (isFullscreen) {
+                socialOverlay.style.display = 'flex';
+                socialOverlay.style.visibility = 'visible';
+                socialOverlay.style.opacity = '1';
+                socialOverlay.style.zIndex = '2147483647';
+            }
+        }, 1000);
         
         // Ensure video plays
         video.addEventListener('canplay', () => {
