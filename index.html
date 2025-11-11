@@ -29,6 +29,9 @@
       height: 100%;
       display: block;
       background: #000;
+      object-fit: contain;
+      position: relative;
+      z-index: 1;
     }
     /* If your video needs rotation, uncomment and adjust:
     .carousel-item video.rotate90 {
@@ -75,13 +78,13 @@
       <!-- Video -->
       <div class="carousel-item active">
         <video 
+          id="mainVideo"
           class="d-block w-100" 
           controls 
           playsinline 
           preload="metadata" 
           muted
-          poster=""
-          style="max-width: 100%; height: auto; min-height: 400px;">
+          style="cursor: pointer;">
           <source src="/jconf-xtech/assets/video.mp4" type="video/mp4" />
           <source src="assets/video.mp4" type="video/mp4" />
           Your browser does not support HTML5 video.
@@ -127,53 +130,84 @@
     videos.forEach(v => v.pause());
   });
   
-  // Debug video loading issues and force load
+  // Debug video loading issues and force load on user interaction
   document.addEventListener('DOMContentLoaded', () => {
-    const video = document.querySelector('video');
-    if (video) {
-      // Try to load the video
-      video.load();
+    const video = document.getElementById('mainVideo');
+    if (!video) return;
+    
+    // Load video metadata on page load (lightweight)
+    video.load();
+    
+    // Force load video on any user interaction (required for large files)
+    const loadVideo = () => {
+      if (video.readyState === 0) {
+        console.log('Loading video on user interaction...');
+        video.load();
+      }
+    };
+    
+    // Try to load on click/touch
+    video.addEventListener('click', loadVideo, { once: true });
+    video.addEventListener('touchstart', loadVideo, { once: true });
+    document.addEventListener('click', loadVideo, { once: true });
+    
+    video.addEventListener('error', (e) => {
+      console.error('Video error:', e);
+      console.error('Video error code:', video.error?.code);
+      console.error('Video error message:', video.error?.message);
+      console.error('Video network state:', video.networkState);
+      console.error('Video ready state:', video.readyState);
       
-      video.addEventListener('error', (e) => {
-        console.error('Video error:', e);
-        console.error('Video error code:', video.error?.code);
-        console.error('Video error message:', video.error?.message);
-        console.error('Video network state:', video.networkState);
-        console.error('Video ready state:', video.readyState);
-        // Try alternative path
-        if (video.error && video.error.code === 4) {
-          const source = video.querySelector('source');
-          if (source && source.src === '/jconf-xtech/assets/video.mp4') {
-            source.src = 'assets/video.mp4';
-            video.load();
-          }
+      // Try alternative paths
+      const sources = video.querySelectorAll('source');
+      sources.forEach((source, index) => {
+        if (index === 0 && source.src.includes('/jconf-xtech/')) {
+          console.log('Trying alternative path...');
+          source.src = 'assets/video.mp4';
+          video.load();
         }
       });
-      video.addEventListener('loadstart', () => {
-        console.log('Video loading started');
-      });
-      video.addEventListener('progress', () => {
-        console.log('Video loading progress:', Math.round((video.buffered.length > 0 ? video.buffered.end(0) / video.duration * 100 : 0)) + '%');
-      });
-      video.addEventListener('canplay', () => {
-        console.log('Video can play');
-      });
-      video.addEventListener('canplaythrough', () => {
-        console.log('Video can play through');
-      });
-      video.addEventListener('loadedmetadata', () => {
-        console.log('Video metadata loaded, duration:', video.duration);
-      });
-      video.addEventListener('loadeddata', () => {
-        console.log('Video data loaded');
-      });
-      
-      // Log current source
-      const source = video.querySelector('source');
-      if (source) {
-        console.log('Video source:', source.src);
+    });
+    
+    video.addEventListener('loadstart', () => {
+      console.log('Video loading started');
+    });
+    
+    video.addEventListener('progress', () => {
+      if (video.buffered.length > 0) {
+        const percent = Math.round((video.buffered.end(0) / video.duration) * 100);
+        console.log('Video loading progress:', percent + '%');
       }
+    });
+    
+    video.addEventListener('canplay', () => {
+      console.log('Video can play');
+    });
+    
+    video.addEventListener('canplaythrough', () => {
+      console.log('Video can play through');
+    });
+    
+    video.addEventListener('loadedmetadata', () => {
+      console.log('Video metadata loaded, duration:', video.duration, 'seconds');
+    });
+    
+    video.addEventListener('loadeddata', () => {
+      console.log('Video data loaded');
+    });
+    
+    // Log current source
+    const source = video.querySelector('source');
+    if (source) {
+      console.log('Video source:', source.src);
     }
+    
+    // Show video element info
+    console.log('Video element:', {
+      width: video.offsetWidth,
+      height: video.offsetHeight,
+      visible: video.offsetWidth > 0 && video.offsetHeight > 0
+    });
   });
 </script>
 </body>
