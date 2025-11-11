@@ -61,14 +61,20 @@
             transition: box-shadow 0.3s ease;
         }
         
-        /* Ensure overlay is visible in fullscreen */
+        /* In fullscreen, use absolute positioning relative to container */
         .video-container:fullscreen .social-overlay,
         .video-container:-webkit-full-screen .social-overlay,
         .video-container:-moz-full-screen .social-overlay,
         .video-container:-ms-fullscreen .social-overlay {
-            position: fixed !important;
+            position: absolute !important;
+            bottom: 30px !important;
+            right: 30px !important;
+            top: auto !important;
+            left: auto !important;
             z-index: 2147483647 !important;
             display: flex !important;
+            visibility: visible !important;
+            opacity: 1 !important;
         }
         
         /* Also handle when body/document is in fullscreen */
@@ -76,9 +82,15 @@
         :-webkit-full-screen .social-overlay,
         :-moz-full-screen .social-overlay,
         :-ms-fullscreen .social-overlay {
-            position: fixed !important;
+            position: absolute !important;
+            bottom: 30px !important;
+            right: 30px !important;
+            top: auto !important;
+            left: auto !important;
             z-index: 2147483647 !important;
             display: flex !important;
+            visibility: visible !important;
+            opacity: 1 !important;
         }
         
         .social-overlay:hover {
@@ -388,8 +400,8 @@
                                 document.msFullscreenElement;
             
             if (isFullscreen) {
-                // Force overlay to be visible and draggable in fullscreen
-                socialOverlay.style.position = 'fixed';
+                // In fullscreen, use absolute positioning relative to the fullscreen container
+                socialOverlay.style.position = 'absolute';
                 socialOverlay.style.zIndex = '2147483647';
                 socialOverlay.style.display = 'flex';
                 socialOverlay.style.visibility = 'visible';
@@ -400,6 +412,31 @@
                 if (fullscreenElement && !fullscreenElement.contains(socialOverlay)) {
                     // If overlay is not in fullscreen element, append it
                     fullscreenElement.appendChild(socialOverlay);
+                }
+                
+                // Restore position from saved values or use default
+                const savedPosition = localStorage.getItem('socialOverlayPosition');
+                if (savedPosition) {
+                    try {
+                        const pos = JSON.parse(savedPosition);
+                        if (pos.left && pos.top) {
+                            // Convert to absolute positioning in fullscreen
+                            const containerRect = fullscreenElement.getBoundingClientRect();
+                            const savedLeft = parseFloat(pos.left);
+                            const savedTop = parseFloat(pos.top);
+                            
+                            // Calculate relative position
+                            const relativeLeft = savedLeft - containerRect.left;
+                            const relativeTop = savedTop - containerRect.top;
+                            
+                            socialOverlay.style.left = relativeLeft + 'px';
+                            socialOverlay.style.top = relativeTop + 'px';
+                            socialOverlay.style.right = 'auto';
+                            socialOverlay.style.bottom = 'auto';
+                        }
+                    } catch (e) {
+                        console.log('Error loading position:', e);
+                    }
                 }
                 
                 // Periodically check and ensure overlay is visible
@@ -413,14 +450,32 @@
                         socialOverlay.style.visibility = 'visible';
                         socialOverlay.style.opacity = '1';
                         socialOverlay.style.zIndex = '2147483647';
+                        socialOverlay.style.position = 'absolute';
                     } else {
                         clearInterval(visibilityCheck);
                     }
                 }, 500);
             } else {
-                // Restore normal positioning when exiting fullscreen
+                // Restore normal fixed positioning when exiting fullscreen
+                socialOverlay.style.position = 'fixed';
                 socialOverlay.style.visibility = 'visible';
                 socialOverlay.style.opacity = '1';
+                
+                // Restore saved position
+                const savedPosition = localStorage.getItem('socialOverlayPosition');
+                if (savedPosition) {
+                    try {
+                        const pos = JSON.parse(savedPosition);
+                        if (pos.left && pos.top) {
+                            socialOverlay.style.left = pos.left;
+                            socialOverlay.style.top = pos.top;
+                            socialOverlay.style.right = 'auto';
+                            socialOverlay.style.bottom = 'auto';
+                        }
+                    } catch (e) {
+                        console.log('Error loading position:', e);
+                    }
+                }
             }
         }
         
@@ -552,14 +607,34 @@
                 return;
             }
             
+            const isFullscreen = document.fullscreenElement || 
+                                document.webkitFullscreenElement || 
+                                document.mozFullScreenElement || 
+                                document.msFullscreenElement;
+            
             const rect = socialOverlay.getBoundingClientRect();
             
-            if (e.type === 'touchstart') {
-                initialX = e.touches[0].clientX - rect.left;
-                initialY = e.touches[0].clientY - rect.top;
+            if (isFullscreen) {
+                // In fullscreen, calculate offset relative to fullscreen container
+                const fullscreenElement = isFullscreen;
+                const containerRect = fullscreenElement.getBoundingClientRect();
+                
+                if (e.type === 'touchstart') {
+                    initialX = e.touches[0].clientX - containerRect.left - (rect.left - containerRect.left);
+                    initialY = e.touches[0].clientY - containerRect.top - (rect.top - containerRect.top);
+                } else {
+                    initialX = e.clientX - containerRect.left - (rect.left - containerRect.left);
+                    initialY = e.clientY - containerRect.top - (rect.top - containerRect.top);
+                }
             } else {
-                initialX = e.clientX - rect.left;
-                initialY = e.clientY - rect.top;
+                // Normal mode
+                if (e.type === 'touchstart') {
+                    initialX = e.touches[0].clientX - rect.left;
+                    initialY = e.touches[0].clientY - rect.top;
+                } else {
+                    initialX = e.clientX - rect.left;
+                    initialY = e.clientY - rect.top;
+                }
             }
             
             isDragging = true;
@@ -579,34 +654,55 @@
                     clientY = e.clientY;
                 }
                 
-                currentX = clientX - initialX;
-                currentY = clientY - initialY;
-                
                 // Get viewport dimensions (works in both normal and fullscreen)
                 const isFullscreen = document.fullscreenElement || 
                                     document.webkitFullscreenElement || 
                                     document.mozFullScreenElement || 
                                     document.msFullscreenElement;
                 
-                const viewportWidth = isFullscreen ? 
-                    (document.fullscreenElement?.clientWidth || window.innerWidth) : 
-                    window.innerWidth;
-                const viewportHeight = isFullscreen ? 
-                    (document.fullscreenElement?.clientHeight || window.innerHeight) : 
-                    window.innerHeight;
-                
-                // Keep overlay within viewport bounds
-                const rect = socialOverlay.getBoundingClientRect();
-                const maxX = viewportWidth - rect.width;
-                const maxY = viewportHeight - rect.height;
-                
-                currentX = Math.max(0, Math.min(currentX, maxX));
-                currentY = Math.max(0, Math.min(currentY, maxY));
-                
-                socialOverlay.style.left = currentX + 'px';
-                socialOverlay.style.top = currentY + 'px';
-                socialOverlay.style.right = 'auto';
-                socialOverlay.style.bottom = 'auto';
+                if (isFullscreen) {
+                    // In fullscreen, calculate position relative to fullscreen container
+                    const fullscreenElement = isFullscreen;
+                    const containerRect = fullscreenElement.getBoundingClientRect();
+                    
+                    currentX = clientX - containerRect.left - initialX;
+                    currentY = clientY - containerRect.top - initialY;
+                    
+                    // Keep overlay within container bounds
+                    const rect = socialOverlay.getBoundingClientRect();
+                    const maxX = containerRect.width - rect.width;
+                    const maxY = containerRect.height - rect.height;
+                    
+                    currentX = Math.max(0, Math.min(currentX, maxX));
+                    currentY = Math.max(0, Math.min(currentY, maxY));
+                    
+                    socialOverlay.style.position = 'absolute';
+                    socialOverlay.style.left = currentX + 'px';
+                    socialOverlay.style.top = currentY + 'px';
+                    socialOverlay.style.right = 'auto';
+                    socialOverlay.style.bottom = 'auto';
+                } else {
+                    // Normal mode - use fixed positioning
+                    currentX = clientX - initialX;
+                    currentY = clientY - initialY;
+                    
+                    const viewportWidth = window.innerWidth;
+                    const viewportHeight = window.innerHeight;
+                    
+                    // Keep overlay within viewport bounds
+                    const rect = socialOverlay.getBoundingClientRect();
+                    const maxX = viewportWidth - rect.width;
+                    const maxY = viewportHeight - rect.height;
+                    
+                    currentX = Math.max(0, Math.min(currentX, maxX));
+                    currentY = Math.max(0, Math.min(currentY, maxY));
+                    
+                    socialOverlay.style.position = 'fixed';
+                    socialOverlay.style.left = currentX + 'px';
+                    socialOverlay.style.top = currentY + 'px';
+                    socialOverlay.style.right = 'auto';
+                    socialOverlay.style.bottom = 'auto';
+                }
             }
         }
         
@@ -616,12 +712,38 @@
                 socialOverlay.classList.remove('dragging');
                 
                 // Save position to localStorage
+                const isFullscreen = document.fullscreenElement || 
+                                    document.webkitFullscreenElement || 
+                                    document.mozFullScreenElement || 
+                                    document.msFullscreenElement;
+                
                 const rect = socialOverlay.getBoundingClientRect();
-                const position = {
-                    left: rect.left + 'px',
-                    top: rect.top + 'px'
-                };
-                localStorage.setItem('socialOverlayPosition', JSON.stringify(position));
+                
+                if (isFullscreen) {
+                    // In fullscreen, save absolute position within container
+                    const fullscreenElement = isFullscreen;
+                    const containerRect = fullscreenElement.getBoundingClientRect();
+                    const relativeLeft = rect.left - containerRect.left;
+                    const relativeTop = rect.top - containerRect.top;
+                    
+                    // Save both relative (for fullscreen) and absolute (for normal mode)
+                    const position = {
+                        left: rect.left + 'px',
+                        top: rect.top + 'px',
+                        relativeLeft: relativeLeft + 'px',
+                        relativeTop: relativeTop + 'px',
+                        isFullscreen: true
+                    };
+                    localStorage.setItem('socialOverlayPosition', JSON.stringify(position));
+                } else {
+                    // Normal mode - save fixed position
+                    const position = {
+                        left: rect.left + 'px',
+                        top: rect.top + 'px',
+                        isFullscreen: false
+                    };
+                    localStorage.setItem('socialOverlayPosition', JSON.stringify(position));
+                }
             }
         }
     </script>
