@@ -37,16 +37,28 @@
 </head>
 <body>
     <video id="mainVideo" controls playsinline preload="auto">
-        <source src="assets/video1.mp4" type="video/mp4">
         Your browser does not support HTML5 video.
     </video>
 
     <script>
         const video = document.getElementById('mainVideo');
         
+        // Force set video source programmatically to avoid cache issues
+        const videoSrc = 'assets/video1.mp4';
+        video.src = videoSrc;
+        
+        // Also add as source element for better browser compatibility
+        const source = document.createElement('source');
+        source.src = videoSrc;
+        source.type = 'video/mp4';
+        video.appendChild(source);
+        
         // Unmute the video
         video.muted = false;
         video.preload = 'auto';
+        
+        console.log('Video source set to:', videoSrc);
+        console.log('Full video src:', video.src);
         
         // Error handling with detailed logging
         video.addEventListener('error', (e) => {
@@ -68,27 +80,29 @@
                 console.error('Error message:', video.error.message);
                 
                 // Try to fix common issues
-                if (video.error.code === 4) {
-                    // Source not supported - try absolute path
-                    const currentSrc = video.currentSrc || video.src || '';
-                    console.log('Attempting to fix source path...');
-                    
-                    if (currentSrc.includes('video.mp4') && !currentSrc.includes('video1.mp4')) {
-                        // Fix old video.mp4 reference
-                        const source = video.querySelector('source');
-                        if (source) {
-                            source.src = 'assets/video1.mp4';
-                            video.load();
-                        } else {
-                            video.src = 'assets/video1.mp4';
-                            video.load();
-                        }
-                    } else if (!currentSrc.startsWith('http') && !currentSrc.startsWith('/')) {
-                        // Try absolute path
-                        const basePath = window.location.pathname.replace(/\/[^/]*$/, '');
-                        video.src = basePath + '/assets/video1.mp4';
-                        video.load();
+                const currentSrc = video.currentSrc || video.src || '';
+                console.log('Attempting to fix source path...');
+                
+                // Always fix to video1.mp4 if video.mp4 is detected
+                if (currentSrc.includes('video.mp4') && !currentSrc.includes('video1.mp4')) {
+                    console.log('Fixing old video.mp4 reference to video1.mp4');
+                    video.src = 'assets/video1.mp4';
+                    const source = video.querySelector('source');
+                    if (source) {
+                        source.src = 'assets/video1.mp4';
                     }
+                    video.load();
+                } else if (video.error.code === 4) {
+                    // If source not supported, try absolute path
+                    console.log('Trying absolute path...');
+                    const basePath = window.location.pathname.replace(/\/[^/]*$/, '');
+                    const absolutePath = basePath + '/assets/video1.mp4';
+                    video.src = absolutePath;
+                    const source = video.querySelector('source');
+                    if (source) {
+                        source.src = absolutePath;
+                    }
+                    video.load();
                 }
             }
         });
